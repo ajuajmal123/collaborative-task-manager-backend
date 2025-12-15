@@ -1,49 +1,48 @@
 import { Request, Response } from "express";
-import { AuthService } from "./auth.service";
 import { registerSchema, loginSchema } from "./auth.dto";
+import { registerService, loginService } from "./auth.service";
 
-export class AuthController {
-  static async register(req: Request, res: Response) {
-    const parsed = registerSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json(parsed.error);
-    }
-
-    const { name, email, password } = parsed.data;
-
-    const { user, token } = await AuthService.register(
-      name,
-      email,
-      password
-    );
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-    });
-
-    res.status(201).json({ user });
+export const register = async (req: Request, res: Response) => {
+  const parsed = registerSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json(parsed.error);
   }
 
-  static async login(req: Request, res: Response) {
-    const parsed = loginSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json(parsed.error);
-    }
+  const { name, email, password } = parsed.data;
 
-    const { email, password } = parsed.data;
-    const { user, token } = await AuthService.login(email, password);
+  const { user, token } = await registerService(
+    name,
+    email,
+    password
+  );
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-    });
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+  });
 
-    res.json({ user });
+  res.status(201).json({ user });
+};
+
+export const login = async (req: Request, res: Response) => {
+  const parsed = loginSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json(parsed.error);
   }
 
-  static async logout(req: Request, res: Response) {
-    res.clearCookie("token");
-    res.status(200).json({ message: "Logged out" });
-  }
-}
+  const { email, password } = parsed.data;
+
+  const { user, token } = await loginService(email, password);
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  res.status(200).json({ user });
+};
+
+export const logout = (_req: Request, res: Response) => {
+  res.clearCookie("token");
+  res.status(200).json({ message: "Logged out" });
+};
