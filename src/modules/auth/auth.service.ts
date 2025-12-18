@@ -1,6 +1,9 @@
 import { User } from "../users/user.model";
 import { hashPassword, comparePassword } from "../../utils/hash";
-import { signToken } from "../../utils/jwt";
+import {
+  signAccessToken,
+  signRefreshToken,
+} from "../../utils/jwt";
 import { AppError } from "../../utils/AppError";
 
 export const registerService = async (
@@ -9,9 +12,10 @@ export const registerService = async (
   password: string
 ) => {
   const existingUser = await User.findOne({ email });
- if (existingUser) {
-  throw new AppError("Email already registered", 400);
-}
+  if (existingUser) {
+    throw new AppError("Email already registered", 400);
+  }
+
   const hashedPassword = await hashPassword(password);
 
   const user = await User.create({
@@ -20,9 +24,11 @@ export const registerService = async (
     password: hashedPassword,
   });
 
-  const token = signToken({ userId: user._id });
-
-  return { user, token };
+  return {
+    user,
+    accessToken: signAccessToken({ userId: user._id.toString() }),
+    refreshToken: signRefreshToken({ userId: user._id.toString() }),
+  };
 };
 
 export const loginService = async (
@@ -30,14 +36,18 @@ export const loginService = async (
   password: string
 ) => {
   const user = await User.findOne({ email });
-if (!user) {
-  throw new AppError("Invalid credentials", 401);
-}
-  const isMatch = await comparePassword(password, user.password);
-if ( !isMatch) {
-  throw new AppError("Invalid credentials", 401);
-}
-  const token = signToken({ userId: user._id });
+  if (!user) {
+    throw new AppError("Invalid credentials", 401);
+  }
 
-  return { user, token };
+  const isMatch = await comparePassword(password, user.password);
+  if (!isMatch) {
+    throw new AppError("Invalid credentials", 401);
+  }
+
+  return {
+    user,
+    accessToken: signAccessToken({ userId: user._id.toString() }),
+    refreshToken: signRefreshToken({ userId: user._id.toString() }),
+  };
 };

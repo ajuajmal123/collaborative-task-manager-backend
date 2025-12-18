@@ -1,48 +1,68 @@
 import { Request, Response } from "express";
 import { registerSchema, loginSchema } from "./auth.dto";
-import { registerService, loginService } from "./auth.service";
-import { User } from "../users/user.model";
 
-//register
+import { User } from "../users/user.model";
+import {
+  registerService,
+  loginService,
+} from "./auth.service";
+import { verifyRefreshToken, signAccessToken } from "../../utils/jwt";
+
+// REGISTER
 export const register = async (req: Request, res: Response) => {
   const parsed = registerSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json(parsed.error);
   }
 
-  const { name, email, password } = parsed.data;
+  const { user, accessToken, refreshToken } =
+    await registerService(
+      parsed.data.name,
+      parsed.data.email,
+      parsed.data.password
+    );
 
-  const { user, token } = await registerService(
-    name,
-    email,
-    password
-  );
-
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-  });
-
-  res.status(201).json({ user });
+  res
+    .cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    })
+    .cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    })
+    .status(201)
+    .json({ user });
 };
 
-//login
+// LOGIN
 export const login = async (req: Request, res: Response) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json(parsed.error);
   }
 
-  const { email, password } = parsed.data;
+  const { user, accessToken, refreshToken } =
+    await loginService(
+      parsed.data.email,
+      parsed.data.password
+    );
 
-  const { user, token } = await loginService(email, password);
-
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-  });
-
-  res.status(200).json({ user });
+  res
+    .cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    })
+    .cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    })
+    .status(200)
+    .json({ user });
 };
 
 //logout
@@ -101,4 +121,26 @@ export const updateMyProfile = async (req: Request, res: Response) => {
 export const getUsers = async (_req: Request, res: Response) => {
   const users = await User.find().select("_id name email");
   res.json(users);
+};
+
+export const refresh = async (req: Request, res: Response) => {
+  const token = req.cookies.refreshToken;
+  if (!token) return res.sendStatus(401);
+
+  try {
+    const payload = verifyRefreshToken(token);
+    const newAccessToken = signAccessToken({
+      userId: payload.userId,
+    });
+
+    res
+      .cookie("accessToken", newAccessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      })
+      .json({ ok: true });
+  } catch {
+    res.sendStatus(403);
+  }
 };
