@@ -65,10 +65,22 @@ export const login = async (req: Request, res: Response) => {
 };
 
 //logout
-export const logout = (_req: Request, res: Response) => {
-  res.clearCookie("token");
-  res.status(200).json({ message: "Logged out" });
+export const logout = async (_req: Request, res: Response) => {
+  res
+    .clearCookie("accessToken", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    })
+    .clearCookie("refreshToken", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    })
+    .status(200)
+    .json({ message: "Logged out" });
 };
+
 
 //get user profile
 export const getMyProfile = async (req: Request, res: Response) => {
