@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 import { registerSchema, loginSchema } from "./auth.dto";
 import { registerService, loginService } from "./auth.service";
+import { User } from "../users/user.model";
 
+//register
 export const register = async (req: Request, res: Response) => {
   const parsed = registerSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -24,6 +26,7 @@ export const register = async (req: Request, res: Response) => {
   res.status(201).json({ user });
 };
 
+//login
 export const login = async (req: Request, res: Response) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -42,7 +45,55 @@ export const login = async (req: Request, res: Response) => {
   res.status(200).json({ user });
 };
 
+//logout
 export const logout = (_req: Request, res: Response) => {
   res.clearCookie("token");
   res.status(200).json({ message: "Logged out" });
+};
+
+//get user profile
+export const getMyProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId?.toString();
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = await User.findById(userId).select("name email");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.json(user);
+  } catch {
+    return res.status(500).json({ message: "Failed to fetch profile" });
+  }
+};
+
+
+
+  //Update current user's profile
+ 
+export const updateMyProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId?.toString();
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ message: "Name is required" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { name },
+      { new: true }
+    ).select("name email");
+
+    return res.json(user);
+  } catch {
+    return res.status(500).json({ message: "Failed to update profile" });
+  }
 };
