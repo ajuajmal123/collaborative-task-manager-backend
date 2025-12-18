@@ -1,7 +1,8 @@
+import { env } from "./config/env";
 import http from "http";
 import app from "./app";
 import { connectDB } from "./config/db";
-import { env } from "./config/env";
+
 import { initSocket } from "./config/socket";
 
 connectDB();

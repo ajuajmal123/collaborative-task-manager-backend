@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { registerSchema, loginSchema } from "./auth.dto";
-
 import { User } from "../users/user.model";
 import {
   registerService,
