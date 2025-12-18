@@ -10,6 +10,6 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
-app.use("/api/auth",taskRoutes)
+app.use("/api/tasks",taskRoutes)
 app.use(errorHandler);
 export default app;

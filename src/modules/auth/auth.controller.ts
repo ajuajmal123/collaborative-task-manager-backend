@@ -97,3 +97,8 @@ export const updateMyProfile = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Failed to update profile" });
   }
 };
+
+export const getUsers = async (_req: Request, res: Response) => {
+  const users = await User.find().select("_id name email");
+  res.json(users);
+};
