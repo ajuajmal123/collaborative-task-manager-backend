@@ -39,25 +39,40 @@ export const getTasks = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const filters: Record<string, string> = {};
+    const {
+      view,
+      status,
+      priority,
+      sortByDueDate,
+    } = req.query;
 
-    if (typeof req.query.status === "string") {
-      filters.status = req.query.status;
+    const filters: any = {};
+
+    if (typeof status === "string") {
+      filters.status = status;
     }
 
-    if (typeof req.query.priority === "string") {
-      filters.priority = req.query.priority;
+    if (typeof priority === "string") {
+      filters.priority = priority;
     }
 
-    const sort =
-      req.query.sortByDueDate === "true" ? { dueDate: 1 } : {};
+    let sort: any = {};
+    if (sortByDueDate === "asc") sort = { dueDate: 1 };
+    if (sortByDueDate === "desc") sort = { dueDate: -1 };
 
-    const tasks = await getTasksService(userId, filters, sort);
+    const tasks = await getTasksService(
+      userId,
+      view as string,
+      filters,
+      sort
+    );
+
     return res.json(tasks);
   } catch {
     return res.status(500).json({ message: "Failed to fetch tasks" });
   }
 };
+
 
 /**
  * UPDATE TASK
