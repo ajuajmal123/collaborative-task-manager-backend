@@ -42,9 +42,10 @@ export const loginService = async (
   }
 
   const isMatch = await comparePassword(password, user.password);
-  if (!isMatch) {
-    throw new AppError("Invalid credentials", 401);
-  }
+ if (!user || !isMatch) {
+  throw new AppError("Invalid credentials", 401);
+}
+
 
   return {
     user,

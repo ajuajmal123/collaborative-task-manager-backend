@@ -6,6 +6,7 @@ import {
   loginService,
 } from "./auth.service";
 import { verifyRefreshToken, signAccessToken } from "../../utils/jwt";
+import { AppError } from "../../utils/AppError";
 
 // REGISTER
 export const register = async (req: Request, res: Response) => {
@@ -38,30 +39,38 @@ export const register = async (req: Request, res: Response) => {
 
 // LOGIN
 export const login = async (req: Request, res: Response) => {
-  const parsed = loginSchema.safeParse(req.body);
-  if (!parsed.success) {
-    return res.status(400).json(parsed.error);
+  try {
+    const parsed = loginSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: parsed.error.issues[0],
+      });
+    }
+
+    const { email, password } = parsed.data;
+
+    const { user, accessToken, refreshToken } =
+      await loginService(email, password);
+
+    res
+      .cookie("accessToken", accessToken, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      })
+      .status(200)
+      .json({ user });
+  } catch (err: any) {
+    return res.status(err.statusCode || 401).json({
+      message: err.message || "Invalid credentials",
+    });
   }
-
-  const { user, accessToken, refreshToken } =
-    await loginService(
-      parsed.data.email,
-      parsed.data.password
-    );
-
-  res
-    .cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    })
-    .cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    })
-    .status(200)
-    .json({ user });
 };
 
 //logout
@@ -135,23 +144,27 @@ export const getUsers = async (_req: Request, res: Response) => {
 };
 
 export const refresh = async (req: Request, res: Response) => {
-  const token = req.cookies.refreshToken;
-  if (!token) return res.sendStatus(401);
+  const refreshToken = req.cookies.refreshToken;
+
+  if (!refreshToken) {
+    throw new AppError("No refresh token", 401);
+  }
 
   try {
-    const payload = verifyRefreshToken(token);
+    const payload = verifyRefreshToken(refreshToken);
+
     const newAccessToken = signAccessToken({
       userId: payload.userId,
     });
 
-    res
-      .cookie("accessToken", newAccessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-      })
-      .json({ ok: true });
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    return res.status(200).json({ message: "Access token refreshed" });
   } catch {
-    res.sendStatus(403);
+    throw new AppError("Invalid refresh token", 401);
   }
 };
