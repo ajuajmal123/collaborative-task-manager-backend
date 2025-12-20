@@ -3,9 +3,6 @@ import jwt from "jsonwebtoken";
 
 
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-  console.log("--- Auth Check ---");
-  console.log("Origin Header:", req.headers.origin);
-  console.log("Cookies received by Server:", req.cookies);
   const { accessToken, refreshToken } = req.cookies;
 
   if (!accessToken && !refreshToken) {
