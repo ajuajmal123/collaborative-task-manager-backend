@@ -1,18 +1,27 @@
 import cors from "cors";
 import { env } from "./env";
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  env.APP_ORIGIN 
+];
+
 export const corsOptions = cors({
   origin: (origin, callback) => {
- 
-    const allowedOrigins = [
-      "http://localhost:3000", 
-      env.APP_ORIGIN
-    ];
+    // 1. Allow if no origin (Postman/Server-to-server)
+    if (!origin) return callback(null, true);
 
-    if (!origin || allowedOrigins.includes(origin)) {
+    // 2. Check against the explicit list
+    const isAllowed = allowedOrigins.includes(origin);
+
+    // 3. Check if it's a Vercel preview URL using regex
+    const isVercelPreview = /\.vercel\.app$/.test(origin);
+
+    if (isAllowed || isVercelPreview) {
       callback(null, true);
     } else {
-      console.error(`CORS Error: Origin ${origin} not allowed`);
+      console.error(`Blocked by CORS: ${origin}`);
       callback(new Error("Not allowed by CORS"));
     }
   },
