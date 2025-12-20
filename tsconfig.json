@@ -12,7 +12,7 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
 
-    "types": ["node"],
+   
     "resolveJsonModule": true
   },
   "exclude": [
