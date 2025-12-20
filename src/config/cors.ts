@@ -14,17 +14,23 @@ const allowedOrigins = [
 
 export const corsOptions = cors({
   origin: (origin, callback) => {
+    // If no origin (like Postman or server-to-server), allow it
     if (!origin) return callback(null, true);
-    const isAllowed = allowedOrigins.includes(origin);
-    const isVercelPreview = /\.vercel\.app$/.test(origin);
+
+    // CRITICAL: Clean the incoming origin string before comparing
+    const cleanOrigin = origin.trim().replace(/[\n\r]/g, "");
+
+    const isAllowed = allowedOrigins.includes(cleanOrigin);
+    const isVercelPreview = /\.vercel\.app$/.test(cleanOrigin);
 
     if (isAllowed || isVercelPreview) {
-      callback(null, true);
+      // Return the CLEANED origin
+      callback(null, cleanOrigin); 
     } else {
       callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true, // This is the "Credentials" Fix
+  credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Cookie"], // Added "Cookie" here
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"]
 });
