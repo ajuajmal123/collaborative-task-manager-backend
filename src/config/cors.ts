@@ -1,11 +1,16 @@
 import cors from "cors";
 import { env } from "./env";
 
+
+const originFromEnv = env.APP_ORIGIN?.trim(); 
+
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
-  env.APP_ORIGIN 
-];
+  originFromEnv 
+].filter(Boolean) as string[];
+
+
 
 export const corsOptions = cors({
   origin: (origin, callback) => {
