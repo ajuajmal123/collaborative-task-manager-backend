@@ -29,12 +29,14 @@ export const register = async (req: Request, res: Response) => {
       secure: env.NODE_ENV === "production",
       sameSite: env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 15 * 60 * 1000,
+      path: "/"
     })
     .cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: env.NODE_ENV === "production",
       sameSite:env.NODE_ENV === "production" ? "none" : "lax",
       maxAge:  7 * 24 * 60 * 60 * 1000,
+      path: "/"
     })
     .status(201)
     .json({ user });
@@ -61,11 +63,15 @@ export const login = async (req: Request, res: Response) => {
         httpOnly: true,
         sameSite:env.NODE_ENV === "production" ? "none" : "lax",
         secure: env.NODE_ENV === "production",
+         maxAge: 15 * 60 * 1000,
+      path: "/"
       })
       .cookie("refreshToken", refreshToken, {
         httpOnly: true,
         sameSite: env.NODE_ENV === "production" ? "none" : "lax",
         secure: env.NODE_ENV === "production",
+         maxAge:  7 * 24 * 60 * 60 * 1000,
+      path: "/"
       })
       .status(200)
       .json({ user });
