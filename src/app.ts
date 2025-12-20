@@ -5,10 +5,12 @@ import { corsOptions } from "./config/cors";
 import { errorHandler } from "./middlewares/error.middleware";
 import taskRoutes from "./modules/tasks/task.route";
 const app = express();
+app.set("trust proxy", 1);
 app.use(corsOptions);
+app.options("*", corsOptions);
 app.use(express.json());
 app.use(cookieParser());
-app.set("trust proxy", 1);
+
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks",taskRoutes)
 app.use(errorHandler);
