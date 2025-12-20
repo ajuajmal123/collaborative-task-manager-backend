@@ -27,14 +27,14 @@ export const register = async (req: Request, res: Response) => {
     .cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: env.NODE_ENV === "production",
-      sameSite: env.NODE_ENV === "production" ? "lax" : "lax",
+      sameSite: "lax",//env.NODE_ENV === "production" ? "lax" : "lax",
       maxAge: 15 * 60 * 1000,
       path: "/"
     })
     .cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: env.NODE_ENV === "production",
-      sameSite:env.NODE_ENV === "production" ? "lax" : "lax",
+      sameSite: "lax" ,//env.NODE_ENV === "production" ? "lax" : "lax",
       maxAge:  7 * 24 * 60 * 60 * 1000,
       path: "/"
     })
@@ -61,14 +61,14 @@ export const login = async (req: Request, res: Response) => {
     res
       .cookie("accessToken", accessToken, {
         httpOnly: true,
-        sameSite:env.NODE_ENV === "production" ? "lax" : "lax",
+        sameSite: "lax",//production" ? "lax" : "lax",
         secure: env.NODE_ENV === "production",
          maxAge: 15 * 60 * 1000,
       path: "/"
       })
       .cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        sameSite: env.NODE_ENV === "production" ? "lax" : "lax",
+        sameSite:"lax", //env.NODE_ENV === "production" ? "lax" : "lax",
         secure: env.NODE_ENV === "production",
          maxAge:  7 * 24 * 60 * 60 * 1000,
       path: "/"
@@ -87,12 +87,12 @@ export const logout = async (_req: Request, res: Response) => {
   res
     .clearCookie("accessToken", {
       httpOnly: true,
-      sameSite: env.NODE_ENV === "production" ? "lax" : "lax",
+      sameSite:"lax", //env.NODE_ENV === "production" ? "lax" : "lax",
       secure: env.NODE_ENV === "production",
     })
     .clearCookie("refreshToken", {
       httpOnly: true,
-      sameSite: env.NODE_ENV === "production" ? "lax" : "lax",
+      sameSite: "lax",//env.NODE_ENV === "production" ? "lax" : "lax",
       secure: env.NODE_ENV === "production",
     })
     .status(200)
@@ -168,7 +168,7 @@ export const refresh = async (req: Request, res: Response) => {
 
     res.cookie("accessToken", newAccessToken, {
       httpOnly: true,
-      sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: "lax",//env.NODE_ENV === "production" ? "none" : "lax",
       secure: env.NODE_ENV === "production",
     });
 
