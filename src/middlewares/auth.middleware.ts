@@ -46,7 +46,7 @@ export const requireAuth = (
 
       res.cookie("accessToken", newAccessToken, {
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "none",
       });
 
       req.userId = payload.userId;
