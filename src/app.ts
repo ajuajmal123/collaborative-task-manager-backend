@@ -7,7 +7,7 @@ import taskRoutes from "./modules/tasks/task.route";
 const app = express();
 app.set("trust proxy", 1);
 app.use(corsOptions);
-app.options("*", corsOptions);
+app.options("(.*)", corsOptions);
 app.use(express.json());
 app.use(cookieParser());
 
