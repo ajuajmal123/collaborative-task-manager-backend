@@ -36,7 +36,7 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
       res.cookie("accessToken", newAccessToken, {
         httpOnly: true,
         secure: true,
-        sameSite: "none",
+        sameSite: "lax",
         path: "/",
       });
 
