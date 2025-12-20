@@ -8,4 +8,5 @@ export const env = {
   ACCESS_SECRET:process.env.ACCESS_SECRET!,
   REFRESH_SECRET:process.env.REFRESH_SECRET!,
   NODE_ENV: process.env.NODE_ENV || "development",
+  APP_ORIGIN:process.env.APP_ORIGIN!,
 };

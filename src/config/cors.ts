@@ -1,4 +1,5 @@
 import cors from "cors";
+import { env } from "./env";
 
 export const corsOptions = cors({
   origin: (origin, callback) => {
@@ -6,7 +7,7 @@ export const corsOptions = cors({
     if (!origin) return callback(null, true);
 
     const allowedOrigins = [
-      "http://localhost:3000", // frontend local
+      env.APP_ORIGIN
      
     ];
 
