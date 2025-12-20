@@ -1,30 +1,32 @@
 import { Server } from "socket.io";
 import http from "http";
-import { addSocketUser, removeSocketUser } from "../utils/socketUsers";
+
 let io: Server;
 
 export const initSocket = (server: http.Server) => {
   io = new Server(server, {
     cors: {
-      origin: [
-        "http://localhost:3000",
-        "https://your-frontend.vercel.app",
-      ],
+      origin: ["http://localhost:3000"],
       credentials: true,
     },
   });
 
-io.on("connection", (socket) => {
-  const userId = socket.handshake.auth?.userId;
+  io.on("connection", (socket) => {
+    const userId = socket.handshake.auth?.userId as string | undefined;
 
-  if (userId) {
-    addSocketUser(userId, socket.id);
-  }
+    //console.log("SOCKET CONNECTED:", socket.id);
+    //console.log("AUTH USER ID:", userId);
 
-  socket.on("disconnect", () => {
-    removeSocketUser(socket.id);
+   
+    if (userId) {
+      socket.join(`user:${userId}`);
+     // console.log(`User ${userId} joined room user:${userId}`);
+    }
+
+    socket.on("disconnect", () => {
+      console.log("SOCKET DISCONNECTED:", socket.id);
+    });
   });
-});
 
   return io;
 };

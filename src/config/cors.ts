@@ -7,7 +7,7 @@ export const corsOptions = cors({
 
     const allowedOrigins = [
       "http://localhost:3000", // frontend local
-      "https://your-frontend.vercel.app" // production frontend
+     
     ];
 
     if (allowedOrigins.includes(origin)) {
@@ -16,5 +16,5 @@ export const corsOptions = cors({
       callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true, // REQUIRED for cookies
+  credentials: true, 
 });

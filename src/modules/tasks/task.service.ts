@@ -1,20 +1,42 @@
 import { Task } from "./task.model";
 import { AppError } from "../../utils/AppError";
 import { getIO } from "../../config/socket";
-import { getSocketIdByUser } from "../../utils/socketUsers";
-export const createTaskService = async (data: any, userId: string) => {
-  const task = await Task.create({
-    ...data,
-    creatorId: userId,
-  });
 
+/* ============================
+   CREATE TASK
+   ============================ */
+export const createTaskService = async (data: any, userId: string) => {
+const task = new Task({
+  ...data,
+  creatorId: userId,
+});
+
+await task.save();
   const io = getIO();
+
+  // Refresh task lists
   io.emit("task:created", task);
+
+  /* ============================
+     NOTIFY ASSIGNEE ON CREATION
+     ============================ */
+  if (task.assignedToId) {
+    io.to(`user:${task.assignedToId}`).emit(
+      "notification:taskAssigned",
+      {
+        message: "A task has been assigned to you",
+        task,
+      }
+    );
+  }
 
   return task;
 };
 
 
+/* ============================
+   GET TASKS
+   ============================ */
 export const getTasksService = async (
   userId: string,
   view: string,
@@ -37,7 +59,7 @@ export const getTasksService = async (
     baseQuery.status = { $ne: "COMPLETED" };
   }
 
-  // Default fallback (safety)
+  // Safety fallback
   if (!view) {
     baseQuery.$or = [
       { creatorId: userId },
@@ -45,11 +67,15 @@ export const getTasksService = async (
     ];
   }
 
-  return Task.find(baseQuery) .populate("creatorId", "name email")
+  return Task.find(baseQuery)
+    .populate("creatorId", "name email")
     .populate("assignedToId", "name email")
-  .sort(sort);
+    .sort(sort);
 };
 
+/* ============================
+   UPDATE TASK
+   ============================ */
 export const updateTaskService = async (
   taskId: string,
   userId: string,
@@ -61,12 +87,11 @@ export const updateTaskService = async (
   const isCreator = task.creatorId.equals(userId);
   const isAssignee = task.assignedToId.equals(userId);
 
-  
   if (!isCreator && !isAssignee) {
     throw new AppError("Not authorized", 403);
   }
 
-  // ✅ Assignee can ONLY update status
+  // Assignee restriction
   if (!isCreator && isAssignee) {
     if (Object.keys(updates).some(k => k !== "status")) {
       throw new AppError("Only status can be updated", 403);
@@ -79,28 +104,33 @@ export const updateTaskService = async (
   await task.save();
 
   const io = getIO();
+
+  // Refresh task lists
   io.emit("task:updated", task);
 
-  // Notify reassignment
+  /* ============================
+     REAL-TIME ASSIGNMENT NOTIFICATION
+     ============================ */
   if (
     isCreator &&
     updates.assignedToId &&
     updates.assignedToId !== previousAssignee
   ) {
-    const socketId = getSocketIdByUser(updates.assignedToId);
-    if (socketId) {
-      io.to(socketId).emit("notification:taskAssigned", {
+    io.to(`user:${updates.assignedToId}`).emit(
+      "notification:taskAssigned",
+      {
         message: "A task has been assigned to you",
         task,
-      });
-    }
+      }
+    );
   }
 
   return task;
 };
 
-
-
+/* ============================
+   DELETE TASK
+   ============================ */
 export const deleteTaskService = async (taskId: string, userId: string) => {
   const task = await Task.findById(taskId);
   if (!task) throw new AppError("Task not found", 404);
@@ -110,4 +140,7 @@ export const deleteTaskService = async (taskId: string, userId: string) => {
   }
 
   await task.deleteOne();
+
+  const io = getIO();
+  io.emit("task:deleted", taskId);
 };
