@@ -3,19 +3,20 @@ import { env } from "./env";
 
 export const corsOptions = cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (Postman, mobile apps)
-    if (!origin) return callback(null, true);
-
+ 
     const allowedOrigins = [
+      "http://localhost:3000", 
       env.APP_ORIGIN
-     
     ];
 
-    if (allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.error(`CORS Error: Origin ${origin} not allowed`);
       callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true, 
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 });
