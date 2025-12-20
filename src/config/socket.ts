@@ -10,6 +10,8 @@ export const initSocket = (server: http.Server) => {
       origin: env.APP_ORIGIN ||"http://localhost:3000",
       credentials: true,
     },
+    transports: ["polling", "websocket"], 
+  allowEIO3: true 
   });
 
   io.on("connection", (socket) => {
