@@ -7,6 +7,7 @@ import {
 } from "./auth.service";
 import { verifyRefreshToken, signAccessToken } from "../../utils/jwt";
 import { AppError } from "../../utils/AppError";
+import { env } from "../../config/env";
 
 // REGISTER
 export const register = async (req: Request, res: Response) => {
@@ -25,13 +26,13 @@ export const register = async (req: Request, res: Response) => {
   res
     .cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      secure: env.NODE_ENV === "production",
+      sameSite: env.NODE_ENV === "production" ? "none" : "lax",
     })
     .cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      secure: env.NODE_ENV === "production",
+      sameSite:env.NODE_ENV === "production" ? "none" : "lax",
     })
     .status(201)
     .json({ user });
@@ -56,13 +57,13 @@ export const login = async (req: Request, res: Response) => {
     res
       .cookie("accessToken", accessToken, {
         httpOnly: true,
-        sameSite: "none",
-        secure: process.env.NODE_ENV === "production",
+        sameSite:env.NODE_ENV === "production" ? "none" : "lax",
+        secure: env.NODE_ENV === "production",
       })
       .cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        sameSite: "none",
-        secure: process.env.NODE_ENV === "production",
+        sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+        secure: env.NODE_ENV === "production",
       })
       .status(200)
       .json({ user });
@@ -78,13 +79,13 @@ export const logout = async (_req: Request, res: Response) => {
   res
     .clearCookie("accessToken", {
       httpOnly: true,
-      sameSite: "none",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+      secure: env.NODE_ENV === "production",
     })
     .clearCookie("refreshToken", {
       httpOnly: true,
-      sameSite: "none",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+      secure: env.NODE_ENV === "production",
     })
     .status(200)
     .json({ message: "Logged out" });
@@ -159,8 +160,8 @@ export const refresh = async (req: Request, res: Response) => {
 
     res.cookie("accessToken", newAccessToken, {
       httpOnly: true,
-      sameSite: "none",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+      secure: env.NODE_ENV === "production",
     });
 
     return res.status(200).json({ message: "Access token refreshed" });

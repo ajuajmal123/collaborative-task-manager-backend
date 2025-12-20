@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { AppError } from "../utils/AppError";
+import { env } from "../config/env";
 
 export const requireAuth = (
   req: Request,
@@ -46,7 +47,8 @@ export const requireAuth = (
 
       res.cookie("accessToken", newAccessToken, {
         httpOnly: true,
-        sameSite: "none",
+  sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+  secure: env.NODE_ENV === "production",
       });
 
       req.userId = payload.userId;
